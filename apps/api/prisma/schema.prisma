@@ -1,0 +1,16 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Investigation {
+  id        String   @id @default(uuid())
+  name      String
+  status    String   @default("CREATED")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
