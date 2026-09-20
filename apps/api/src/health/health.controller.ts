@@ -10,6 +10,6 @@ export class HealthController {
   async check() {
     await this.prisma.$queryRaw`SELECT 1`;
 
-    return { status: 'ok', service: 'tracelens-api' };
+    return { status: 'ok', service: 'tracelens-api', database: 'connected' };
   }
 }
