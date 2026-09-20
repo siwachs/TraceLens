@@ -21,5 +21,22 @@ services:
       timeout: 5s
       retries: 10
 
+  floci:
+    image: floci/floci:latest
+    container_name: tracelens-floci
+    restart: unless-stopped
+
+    environment:
+      FLOCI_DEFAULT_REGION: us-east-1
+      FLOCI_STORAGE_MODE: persistent
+      FLOCI_STORAGE_PERSISTENT_PATH: /app/data
+
+    ports:
+      - "4566:4566"
+
+    volumes:
+      - ./docker/floci/data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+
 volumes:
   postgres_data:

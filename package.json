@@ -2,11 +2,15 @@
   "name": "tracelens",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "infra"
   ],
   "scripts": {
     "dev:web": "npm --workspace apps/web run dev",
     "dev:api": "npm --workspace apps/api run start:dev",
-    "build": "npm run build --workspaces"
+    "build": "npm run build --workspaces",
+    "infra:build": "npm --workspace infra run build",
+    "infra:synth": "npm --workspace infra run synth",
+    "infra:diff": "npm --workspace infra run diff"
   }
 }
