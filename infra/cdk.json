@@ -1,0 +1,6 @@
+{
+  "app": "node --loader ts-node/esm bin/tracelens.ts",
+  "context": {
+    "project": "tracelens"
+  }
+}

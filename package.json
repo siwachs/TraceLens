@@ -11,6 +11,9 @@
     "build": "npm run build --workspaces",
     "infra:build": "npm --workspace infra run build",
     "infra:synth": "npm --workspace infra run synth",
-    "infra:diff": "npm --workspace infra run diff"
+    "infra:diff": "npm --workspace infra run diff",
+    "infra:deploy": "npm --workspace infra run deploy",
+    "infra:destroy": "npm --workspace infra run destroy",
+    "infra:bootstrap": "npm --workspace infra run bootstrap"
   }
 }

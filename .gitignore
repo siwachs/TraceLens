@@ -1,3 +1,10 @@
 .env
 node_modules
 docker
+
+# CDK
+infra/cdk.out/
+infra/dist/
+
+# TypeScript
+*.tsbuildinfo
