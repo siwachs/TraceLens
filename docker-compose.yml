@@ -21,6 +21,9 @@ services:
       timeout: 5s
       retries: 10
 
+    networks:
+      - tracelens
+
   floci:
     image: floci/floci:latest
     container_name: tracelens-floci
@@ -31,12 +34,26 @@ services:
       FLOCI_STORAGE_MODE: persistent
       FLOCI_STORAGE_PERSISTENT_PATH: /app/data
 
+      FLOCI_HOSTNAME: floci
+      FLOCI_BASE_URL: http://floci:4566
+      FLOCI_TLS_ENABLED: "true"
+      
+      # All Floci container-backed services
+      FLOCI_SERVICES_DOCKER_NETWORK: tracelens
+
     ports:
       - "4566:4566"
 
     volumes:
       - ./docker/floci/data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
+
+    networks:
+      - tracelens
+
+networks:
+  tracelens:
+    name: tracelens
 
 volumes:
   postgres_data:
