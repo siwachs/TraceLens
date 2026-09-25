@@ -9,8 +9,40 @@ datasource db {
 
 model Investigation {
   id        String   @id @default(uuid())
+
   name      String
   status    String   @default("CREATED")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  researchAssets ResearchAsset[]
+}
+
+model ResearchAsset {
+  id               String   @id @default(uuid())
+  investigationId  String
+
+  originalFilename String
+  contentType      String
+  sizeBytes        BigInt
+
+  storageKey       String
+
+  status           ResearchAssetStatus @default(UPLOADING)
+
+  sha256           String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+
+  @@index([investigationId])
+}
+
+enum ResearchAssetStatus {
+  UPLOADING
+  READY
+  FAILED
 }
