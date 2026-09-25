@@ -1,6 +1,16 @@
 import { registerAs } from '@nestjs/config';
 
-export default registerAs('aws', () => ({
+export interface AwsConfig {
+  region: string;
+  endpoint?: string;
+  credentials?: {
+    accessKeyId: string;
+    secretAccessKey: string;
+  };
+  s3Bucket?: string;
+}
+
+export default registerAs('aws', (): AwsConfig => ({
   region: process.env.AWS_REGION ?? 'us-east-1',
   endpoint: process.env.AWS_ENDPOINT_URL ?? undefined,
 

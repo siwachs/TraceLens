@@ -7,9 +7,11 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { HealthModule } from './health/health.module.js';
 import { InvestigationModule } from './investigations/investigation.module.js';
 
+import awsConfig from './infrastructure/aws/aws.config.js';
+
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, load: [awsConfig] }),
     PrismaModule,
     HealthModule,
     InvestigationModule,
