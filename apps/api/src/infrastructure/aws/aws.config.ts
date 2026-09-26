@@ -7,7 +7,11 @@ export interface AwsConfig {
     accessKeyId: string;
     secretAccessKey: string;
   };
-  s3Bucket?: string;
+  s3?: {
+    buckets: {
+      investigationImages: string;
+    };
+  };
 }
 
 export default registerAs('aws', (): AwsConfig => ({
@@ -22,5 +26,9 @@ export default registerAs('aws', (): AwsConfig => ({
         }
       : undefined,
 
-  s3Bucket: process.env.AWS_S3_BUCKET,
+  s3: {
+    buckets: {
+      investigationImages: process.env.AWS_S3_INVESTIGATION_IMAGES_BUCKET!,
+    },
+  },
 }));
