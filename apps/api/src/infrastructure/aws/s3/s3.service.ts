@@ -5,6 +5,7 @@ import {
   DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
+  PutObjectCommandInput,
   S3Client,
 } from '@aws-sdk/client-s3';
 
@@ -40,7 +41,7 @@ export class S3Service {
   async put(
     bucket: S3Bucket,
     key: string,
-    body: Uint8Array | Buffer | string,
+    body: PutObjectCommandInput['Body'],
     contentType?: string,
   ): Promise<void> {
     await this.client.send(
