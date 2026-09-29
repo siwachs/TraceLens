@@ -1,15 +1,19 @@
 import {
-  Body,
   Controller,
+  Body,
   Get,
-  Post,
-  UseInterceptors,
   Param,
+  Post,
+  Res,
   UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { InvestigationService } from './investigation.service.js';
-import { FileInterceptor } from '@nestjs/platform-express';
+
+import type { Response } from 'express';
+import type { Readable } from 'node:stream';
 
 @Controller('investigations')
 export class InvestigationController {
@@ -25,15 +29,32 @@ export class InvestigationController {
     return this.investigationService.findAll();
   }
 
-  @Post(':id/assets')
+  @Post(':investigationId/assets')
   @UseInterceptors(FileInterceptor('file'))
   uploadAsset(
-    @Param('id') investigationId: string,
+    @Param('investigationId') investigationId: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.investigationService.uploadAsset(
+    return this.investigationService.uploadAsset(investigationId, file);
+  }
+
+  @Get(':investigationId/assets/:assetId')
+  async getAsset(
+    @Param('investigationId') investigationId: string,
+    @Param('assetId') assetId: string,
+    @Res() response: Response,
+  ) {
+    const { asset, object } = await this.investigationService.getAsset(
       investigationId,
-      file,
+      assetId,
     );
+
+    response.setHeader('Content-Type', asset.contentType);
+
+    response.setHeader('Content-Length', asset.sizeBytes.toString());
+
+    if (object.Body) {
+      (object.Body as Readable).pipe(response);
+    }
   }
 }

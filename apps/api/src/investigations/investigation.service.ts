@@ -76,4 +76,33 @@ export class InvestigationService {
       throw error;
     }
   }
+
+  private async findAsset(investigationId: string, assetId: string) {
+    const asset = await this.prisma.researchAsset.findFirst({
+      where: {
+        id: assetId,
+        investigationId,
+      },
+    });
+
+    if (!asset) {
+      throw new NotFoundException('Research asset not found');
+    }
+
+    return asset;
+  }
+
+  async getAsset(investigationId: string, assetId: string) {
+    const asset = await this.findAsset(investigationId, assetId);
+
+    const object = await this.s3Service.get(
+      'investigationImages',
+      asset.storageKey,
+    );
+
+    return {
+      asset,
+      object,
+    };
+  }
 }
