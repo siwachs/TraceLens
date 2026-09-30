@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   Body,
   Get,
   Param,
@@ -7,6 +8,7 @@ import {
   Res,
   UploadedFile,
   UseInterceptors,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -53,8 +55,23 @@ export class InvestigationController {
 
     response.setHeader('Content-Length', asset.sizeBytes.toString());
 
-    if (object.Body) {
-      (object.Body as Readable).pipe(response);
+    if (!object.Body) {
+      throw new InternalServerErrorException('S3 object has no body');
     }
+
+    (object.Body as Readable).pipe(response);
+  }
+
+  @Delete(':investigationId/assets/:assetId')
+  async deleteAsset(
+    @Param('investigationId') investigationId: string,
+    @Param('assetId') assetId: string,
+  ) {
+    await this.investigationService.deleteAsset(investigationId, assetId);
+  }
+
+  @Get(':investigationId/assets')
+  findAssets(@Param('investigationId') investigationId: string) {
+    return this.investigationService.findAssets(investigationId);
   }
 }

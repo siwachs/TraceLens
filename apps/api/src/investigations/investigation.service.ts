@@ -105,4 +105,53 @@ export class InvestigationService {
       object,
     };
   }
+
+  async deleteAsset(investigationId: string, assetId: string) {
+    const asset = await this.findAsset(investigationId, assetId);
+
+    await this.s3Service.delete('investigationImages', asset.storageKey);
+
+    await this.prisma.researchAsset.delete({
+      where: {
+        id: asset.id,
+      },
+    });
+  }
+
+  async findAssets(investigationId: string) {
+    const investigation = await this.prisma.investigation.findUnique({
+      where: {
+        id: investigationId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!investigation) {
+      throw new NotFoundException('Investigation not found');
+    }
+
+    const assets = await this.prisma.researchAsset.findMany({
+      where: {
+        investigationId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return assets.map((asset) => ({
+      id: asset.id,
+      investigationId: asset.investigationId,
+      originalFilename: asset.originalFilename,
+      contentType: asset.contentType,
+      sizeBytes: asset.sizeBytes.toString(),
+      storageKey: asset.storageKey,
+      status: asset.status,
+      sha256: asset.sha256,
+      createdAt: asset.createdAt,
+      updatedAt: asset.updatedAt,
+    }));
+  }
 }
