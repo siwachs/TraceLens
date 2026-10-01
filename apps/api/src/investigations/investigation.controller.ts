@@ -13,13 +13,17 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 
 import { InvestigationService } from './investigation.service.js';
+import { AssetProcessingService } from './asset-processing.service.js';
 
 import type { Response } from 'express';
 import type { Readable } from 'node:stream';
 
 @Controller('investigations')
 export class InvestigationController {
-  constructor(private readonly investigationService: InvestigationService) {}
+  constructor(
+    private readonly investigationService: InvestigationService,
+    private readonly assetProcessingService: AssetProcessingService,
+  ) {}
 
   @Post()
   create(@Body('name') name: string) {
@@ -73,5 +77,14 @@ export class InvestigationController {
   @Get(':investigationId/assets')
   findAssets(@Param('investigationId') investigationId: string) {
     return this.investigationService.findAssets(investigationId);
+  }
+
+  // Temp. endpoint before async processing
+  @Post(':investigationId/assets/:assetId/process')
+  processAsset(
+    @Param('investigationId') investigationId: string,
+    @Param('assetId') assetId: string,
+  ) {
+    return this.assetProcessingService.process(investigationId, assetId);
   }
 }
