@@ -8,10 +8,10 @@ datasource db {
 }
 
 model Investigation {
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  name      String
-  status    String   @default("CREATED")
+  name   String
+  status String @default("CREATED")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -20,21 +20,21 @@ model Investigation {
 }
 
 model ResearchAsset {
-  id               String   @id @default(uuid())
-  investigationId  String
+  id              String @id @default(uuid())
+  investigationId String
 
   originalFilename String
   contentType      String
   sizeBytes        BigInt
 
-  storageKey       String
+  storageKey String
 
-  status           ResearchAssetStatus @default(UPLOADING)
+  status ResearchAssetStatus @default(UPLOADING)
 
-  sha256           String?
+  sha256 String?
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
 
@@ -44,5 +44,7 @@ model ResearchAsset {
 enum ResearchAssetStatus {
   UPLOADING
   READY
+  PROCESSING
+  PROCESSED
   FAILED
 }
