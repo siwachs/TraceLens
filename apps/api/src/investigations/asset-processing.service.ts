@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { S3Service } from '../infrastructure/aws/s3/s3.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { ImageMetadataService } from './image-metadata.service.js';
+import { ExifService } from './exif.service.js';
 
 import type { Readable } from 'node:stream';
 
@@ -10,6 +12,8 @@ export class AssetProcessingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly s3Service: S3Service,
+    private readonly imageMetadataService: ImageMetadataService,
+    private readonly exifService: ExifService,
   ) {}
 
   async process(investigationId: string, assetId: string) {
@@ -49,8 +53,12 @@ export class AssetProcessingService {
 
       const imageBuffer = await this.streamToBuffer(object.Body as Readable);
 
-      // Image analysis will be added here.
-      // EXIF, perceptual hash, dimensions, etc.
+      const metadata = await this.imageMetadataService.extract(imageBuffer);
+      const exif = await this.exifService.extract(imageBuffer);
+      console.log({
+        metadata,
+        exif,
+      });
 
       await this.prisma.researchAsset.update({
         where: {
