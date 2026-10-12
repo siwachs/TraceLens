@@ -38,6 +38,8 @@ model ResearchAsset {
 
   investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
 
+  artifacts ResearchAssetArtifact[]
+
   @@index([investigationId])
 }
 
@@ -47,4 +49,20 @@ enum ResearchAssetStatus {
   PROCESSING
   PROCESSED
   FAILED
+}
+
+model ResearchAssetArtifact {
+  id              String @id @default(uuid())
+  researchAssetId String
+
+  type        String
+  storageKey  String
+  contentType String
+  sizeBytes   BigInt
+
+  createdAt DateTime @default(now())
+
+  researchAsset ResearchAsset @relation(fields: [researchAssetId], references: [id], onDelete: Cascade)
+
+  @@index([researchAssetId])
 }
