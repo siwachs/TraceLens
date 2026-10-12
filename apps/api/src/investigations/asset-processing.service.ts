@@ -4,6 +4,7 @@ import { S3Service } from '../infrastructure/aws/s3/s3.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ImageMetadataService } from './image-metadata.service.js';
 import { ExifService } from './exif.service.js';
+import { PerceptualHashService } from './perceptual-hash.service.js';
 
 import type { Readable } from 'node:stream';
 
@@ -14,6 +15,7 @@ export class AssetProcessingService {
     private readonly s3Service: S3Service,
     private readonly imageMetadataService: ImageMetadataService,
     private readonly exifService: ExifService,
+    private readonly perceptualHashService: PerceptualHashService,
   ) {}
 
   async process(investigationId: string, assetId: string) {
@@ -55,9 +57,12 @@ export class AssetProcessingService {
 
       const metadata = await this.imageMetadataService.extract(imageBuffer);
       const exif = await this.exifService.extract(imageBuffer);
+      const perceptualHash =
+        await this.perceptualHashService.calculate(imageBuffer);
       console.log({
         metadata,
         exif,
+        perceptualHash,
       });
 
       await this.prisma.researchAsset.update({
