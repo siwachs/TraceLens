@@ -8,6 +8,7 @@ import { AssetProcessingService } from './asset-processing.service.js';
 import { ImageMetadataService } from './image-metadata.service.js';
 import { ExifService } from './exif.service.js';
 import { PerceptualHashService } from './perceptual-hash.service.js';
+import { DerivedArtifactService } from './derived-artifact.service.js';
 
 @Module({
   controllers: [InvestigationController],
@@ -17,6 +18,7 @@ import { PerceptualHashService } from './perceptual-hash.service.js';
     ImageMetadataService,
     ExifService,
     PerceptualHashService,
+    DerivedArtifactService,
   ],
   imports: [S3Module],
 })
