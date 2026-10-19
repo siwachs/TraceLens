@@ -66,18 +66,18 @@ export class AssetProcessingService {
         assetId,
         imageBuffer,
       );
-      console.log({
-        metadata,
-        exif,
-        perceptualHash,
-      });
-
+    
       await this.prisma.researchAsset.update({
         where: {
           id: asset.id,
         },
         data: {
           status: 'PROCESSED',
+          analysis: {
+            metadata,
+            exif,
+            perceptualHash,
+          },
         },
       });
 

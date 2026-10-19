@@ -32,6 +32,7 @@ model ResearchAsset {
   status ResearchAssetStatus @default(UPLOADING)
 
   sha256 String?
+  analysis Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
