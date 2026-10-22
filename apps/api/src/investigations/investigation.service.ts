@@ -3,12 +3,14 @@ import { createHash, randomUUID } from 'node:crypto';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { S3Service } from '../infrastructure/aws/s3/s3.service.js';
+import { DerivedArtifactService } from './derived-artifact.service.js';
 
 @Injectable()
 export class InvestigationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly s3Service: S3Service,
+    private readonly derivedArtifactService: DerivedArtifactService,
   ) {}
 
   async create(name: string) {
@@ -108,7 +110,8 @@ export class InvestigationService {
 
   async deleteAsset(investigationId: string, assetId: string) {
     const asset = await this.findAsset(investigationId, assetId);
-
+    
+    await this.derivedArtifactService.deleteAllForAsset(asset.id);
     await this.s3Service.delete('investigationImages', asset.storageKey);
 
     await this.prisma.researchAsset.delete({

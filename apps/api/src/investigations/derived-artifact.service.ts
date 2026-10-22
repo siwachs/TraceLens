@@ -27,7 +27,7 @@ export class DerivedArtifactService {
       .jpeg({ quality: 80 })
       .toBuffer();
 
-    const storageKey = `investigations/${investigationId}/assets/${assetId}/derived/thumbnail.jpg'`;
+    const storageKey = `investigations/${investigationId}/assets/${assetId}/derived/thumbnail.jpg`;
 
     await this.s3Service.put(
       'investigationImages',
@@ -54,6 +54,21 @@ export class DerivedArtifactService {
       }
 
       throw error;
+    }
+  }
+
+  async deleteAllForAsset(assetId: string) {
+    const artifacts = await this.prisma.researchAssetArtifact.findMany({
+      where: { researchAssetId: assetId },
+      select: { id: true, storageKey: true },
+    });
+
+    for (const artifact of artifacts) {
+      await this.s3Service.delete('investigationImages', artifact.storageKey);
+
+      await this.prisma.researchAssetArtifact.delete({
+        where: { id: artifact.id },
+      });
     }
   }
 }
