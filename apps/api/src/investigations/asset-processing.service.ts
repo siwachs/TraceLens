@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 
 import { S3Service } from '../infrastructure/aws/s3/s3.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -32,20 +36,22 @@ export class AssetProcessingService {
       throw new NotFoundException('Research asset not found');
     }
 
-    if (asset.status !== 'READY') {
-      throw new Error(`Asset cannot be processed from status ${asset.status}`);
-    }
-
-    await this.prisma.researchAsset.update({
-      where: {
-        id: asset.id,
-      },
-      data: {
-        status: 'PROCESSING',
-      },
-    });
-
     try {
+      const claim = await this.prisma.researchAsset.updateMany({
+        where: {
+          id: asset.id,
+          status: 'READY',
+        },
+        data: {
+          status: 'PROCESSING',
+        },
+      });
+      if (claim.count === 0) {
+        throw new ConflictException(
+          'Asset is not in READY status or is already being processed',
+        );
+      }
+
       const object = await this.s3Service.get(
         'investigationImages',
         asset.storageKey,
@@ -66,7 +72,7 @@ export class AssetProcessingService {
         assetId,
         imageBuffer,
       );
-    
+
       await this.prisma.researchAsset.update({
         where: {
           id: asset.id,
