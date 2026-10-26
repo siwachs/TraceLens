@@ -18,6 +18,8 @@ import { AssetProcessingService } from './asset-processing.service.js';
 import type { Response } from 'express';
 import type { Readable } from 'node:stream';
 
+import { INVESTIGATION_IMAGE_MAX_UPLOAD_BYTES } from './assets.config.js';
+
 @Controller('investigations')
 export class InvestigationController {
   constructor(
@@ -36,7 +38,11 @@ export class InvestigationController {
   }
 
   @Post(':investigationId/assets')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: INVESTIGATION_IMAGE_MAX_UPLOAD_BYTES, files: 1 },
+    }),
+  )
   uploadAsset(
     @Param('investigationId') investigationId: string,
     @UploadedFile() file: Express.Multer.File,

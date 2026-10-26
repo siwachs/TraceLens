@@ -8,10 +8,11 @@ import { HealthModule } from './health/health.module.js';
 import { InvestigationModule } from './investigations/investigation.module.js';
 
 import awsConfig from './infrastructure/aws/aws.config.js';
+import assetsConfig from './investigations/assets.config.js';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, load: [awsConfig] }),
+    ConfigModule.forRoot({ isGlobal: true, load: [awsConfig, assetsConfig] }),
     PrismaModule,
     HealthModule,
     InvestigationModule,

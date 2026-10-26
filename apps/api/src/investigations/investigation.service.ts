@@ -1,17 +1,30 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { createHash, randomUUID } from 'node:crypto';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { S3Service } from '../infrastructure/aws/s3/s3.service.js';
 import { DerivedArtifactService } from './derived-artifact.service.js';
+import sharp, { type Metadata } from 'sharp';
+
+import { AssetsConfig } from './assets.config.js';
 
 @Injectable()
 export class InvestigationService {
+  private assetsConfig: AssetsConfig;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly s3Service: S3Service,
     private readonly derivedArtifactService: DerivedArtifactService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.assetsConfig = configService.getOrThrow<AssetsConfig>('assets');
+  }
 
   async create(name: string) {
     return this.prisma.investigation.create({
@@ -33,6 +46,7 @@ export class InvestigationService {
     if (!investigation) {
       throw new NotFoundException('Investigation not found');
     }
+    await this.validateImage(file);
 
     const assetId = randomUUID();
     const sha256 = createHash('sha256').update(file.buffer).digest('hex');
@@ -79,6 +93,34 @@ export class InvestigationService {
     }
   }
 
+  private async validateImage(file: Express.Multer.File): Promise<void> {
+    let metadata: Metadata;
+
+    try {
+      metadata = await sharp(file.buffer).metadata();
+    } catch {
+      throw new BadRequestException('File is not a valid image');
+    }
+
+    const { investigationImage } = this.assetsConfig;
+    const isAllowed = investigationImage.allowedFormats.includes(
+      metadata.format ?? '',
+    );
+    if (!isAllowed) {
+      throw new BadRequestException(
+        `Unsupported image format. Allowed: ${investigationImage.allowedFormats.join(', ')}`,
+      );
+    }
+
+    if (
+      !metadata.width ||
+      !metadata.height ||
+      metadata.width * metadata.height > investigationImage.maxPixels
+    ) {
+      throw new BadRequestException('Image dimensions are not acceptable');
+    }
+  }
+
   private async findAsset(investigationId: string, assetId: string) {
     const asset = await this.prisma.researchAsset.findFirst({
       where: {
@@ -110,7 +152,7 @@ export class InvestigationService {
 
   async deleteAsset(investigationId: string, assetId: string) {
     const asset = await this.findAsset(investigationId, assetId);
-    
+
     await this.derivedArtifactService.deleteAllForAsset(asset.id);
     await this.s3Service.delete('investigationImages', asset.storageKey);
 
