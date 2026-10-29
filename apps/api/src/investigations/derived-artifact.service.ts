@@ -29,6 +29,12 @@ export class DerivedArtifactService {
 
     const storageKey = `investigations/${investigationId}/assets/${assetId}/derived/thumbnail.jpg`;
 
+    const existing = await this.prisma.researchAssetArtifact.findUnique({
+      where: {
+        researchAssetId_type: { researchAssetId: assetId, type: 'THUMBNAIL' },
+      },
+      select: { id: true },
+    });
     await this.s3Service.put(
       'investigationImages',
       storageKey,
@@ -37,20 +43,33 @@ export class DerivedArtifactService {
     );
 
     try {
-      return await this.prisma.researchAssetArtifact.create({
-        data: {
+      return await this.prisma.researchAssetArtifact.upsert({
+        where: {
+          researchAssetId_type: {
+            researchAssetId: assetId,
+            type: 'THUMBNAIL',
+          },
+        },
+        create: {
           researchAssetId: assetId,
           type: 'THUMBNAIL',
           storageKey,
           contentType: 'image/jpeg',
           sizeBytes: BigInt(thumbnailBuffer.length),
         },
+        update: {
+          storageKey,
+          contentType: 'image/jpeg',
+          sizeBytes: BigInt(thumbnailBuffer.length),
+        },
       });
     } catch (error) {
-      try {
-        await this.s3Service.delete('investigationImages', storageKey);
-      } catch {
-        // Preserve the original persistence error.
+      if (!existing) {
+        try {
+          await this.s3Service.delete('investigationImages', storageKey);
+        } catch {
+          // Preserve the original persistence error.
+        }
       }
 
       throw error;
