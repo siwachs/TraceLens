@@ -5,6 +5,7 @@ export interface AssetsConfig {
     allowedFormats: string[];
     maxPixels: number;
   };
+  processingStaleAfterMS: number;
 }
 
 export const INVESTIGATION_IMAGE_MAX_UPLOAD_BYTES = Number(
@@ -24,4 +25,8 @@ export default registerAs('assets', (): AssetsConfig => ({
       process.env.INVESTIGATION_IMAGE_MAX_PIXELS ?? 100_000_000,
     ),
   },
+
+  processingStaleAfterMS: Number(
+    process.env.PROCESSING_STALE_AFTER_MS ?? 5 * 60 * 1000,
+  ),
 }));

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { S3Service } from '../infrastructure/aws/s3/s3.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -12,9 +13,12 @@ import { PerceptualHashService } from './perceptual-hash.service.js';
 import { DerivedArtifactService } from './derived-artifact.service.js';
 
 import type { Readable } from 'node:stream';
+import type { AssetsConfig } from './assets.config.js';
 
 @Injectable()
 export class AssetProcessingService {
+  private assetsConfig: AssetsConfig;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly s3Service: S3Service,
@@ -22,7 +26,10 @@ export class AssetProcessingService {
     private readonly exifService: ExifService,
     private readonly perceptualHashService: PerceptualHashService,
     private readonly derivedArtifactService: DerivedArtifactService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.assetsConfig = this.configService.getOrThrow<AssetsConfig>('assets');
+  }
 
   async process(investigationId: string, assetId: string) {
     const asset = await this.prisma.researchAsset.findFirst({
@@ -36,11 +43,18 @@ export class AssetProcessingService {
       throw new NotFoundException('Research asset not found');
     }
 
+    const staleBefore = new Date(
+      Date.now() - this.assetsConfig.processingStaleAfterMS,
+    );
+
     try {
       const claim = await this.prisma.researchAsset.updateMany({
         where: {
           id: asset.id,
-          status: 'READY',
+          OR: [
+            { status: { in: ['READY', 'FAILED'] } },
+            { status: 'PROCESSING', updatedAt: { lt: staleBefore } },
+          ],
         },
         data: {
           status: 'PROCESSING',
@@ -48,7 +62,7 @@ export class AssetProcessingService {
       });
       if (claim.count === 0) {
         throw new ConflictException(
-          'Asset is not in READY status or is already being processed',
+          'Asset must be READY or FAILED to be processed, and not already in progress',
         );
       }
 
