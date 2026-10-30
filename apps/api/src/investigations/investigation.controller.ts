@@ -37,6 +37,11 @@ export class InvestigationController {
     return this.investigationService.findAll();
   }
 
+  @Delete(':investigationId')
+  async deleteInvestigation(@Param('investigationId') investigationId: string) {
+    await this.investigationService.deleteInvestigation(investigationId);
+  }
+
   @Post(':investigationId/assets')
   @UseInterceptors(
     FileInterceptor('file', {

@@ -163,6 +163,30 @@ export class InvestigationService {
     });
   }
 
+  async deleteInvestigation(investigationId: string) {
+    const investigation = await this.prisma.investigation.findUnique({
+      where: { id: investigationId },
+      select: { id: true },
+    });
+
+    if (!investigation) {
+      throw new NotFoundException('Investigation not found');
+    }
+
+    const assets = await this.prisma.researchAsset.findMany({
+      where: { investigationId },
+      select: { id: true },
+    });
+
+    for (const asset of assets) {
+      await this.deleteAsset(investigationId, asset.id);
+    }
+
+    await this.prisma.investigation.delete({
+      where: { id: investigationId },
+    });
+  }
+
   async findAssets(investigationId: string) {
     const investigation = await this.prisma.investigation.findUnique({
       where: {
