@@ -14,6 +14,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 import { InvestigationService } from './investigation.service.js';
 import { AssetProcessingService } from './asset-processing.service.js';
+import { DerivedArtifactService } from './derived-artifact.service.js';
 
 import type { Response } from 'express';
 import type { Readable } from 'node:stream';
@@ -25,6 +26,7 @@ export class InvestigationController {
   constructor(
     private readonly investigationService: InvestigationService,
     private readonly assetProcessingService: AssetProcessingService,
+    private readonly derivedArtifactService: DerivedArtifactService,
   ) {}
 
   @Post()
@@ -88,6 +90,37 @@ export class InvestigationController {
   @Get(':investigationId/assets')
   findAssets(@Param('investigationId') investigationId: string) {
     return this.investigationService.findAssets(investigationId);
+  }
+
+  @Get(':investigationId/assets/:assetId/artifacts')
+  findArtifacts(
+    @Param('investigationId') investigationId: string,
+    @Param('assetId') assetId: string,
+  ) {
+    return this.derivedArtifactService.findForAsset(investigationId, assetId);
+  }
+
+  @Get(':investigationId/assets/:assetId/artifacts/:artifactId')
+  async getArtifactContent(
+    @Param('investigationId') investigationId: string,
+    @Param('assetId') assetId: string,
+    @Param('artifactId') artifactId: string,
+    @Res() response: Response,
+  ) {
+    const { artifact, object } = await this.derivedArtifactService.getContent(
+      investigationId,
+      assetId,
+      artifactId,
+    );
+
+    if (!object.Body) {
+      throw new InternalServerErrorException('S3 object has no body');
+    }
+
+    response.setHeader('Content-Type', artifact.contentType);
+    response.setHeader('Content-Length', artifact.sizeBytes.toString());
+
+    (object.Body as Readable).pipe(response);
   }
 
   // Temp. endpoint before async processing

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import sharp from 'sharp';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -89,5 +89,51 @@ export class DerivedArtifactService {
         where: { id: artifact.id },
       });
     }
+  }
+
+  async findForAsset(investigationId: string, assetId: string) {
+    const asset = await this.prisma.researchAsset.findFirst({
+      where: { id: assetId, investigationId },
+      select: {
+        artifacts: { orderBy: { createdAt: 'asc' } },
+      },
+    });
+
+    if (!asset) {
+      throw new NotFoundException('Research asset not found');
+    }
+
+    return asset.artifacts.map((artifact) => ({
+      id: artifact.id,
+      type: artifact.type,
+      contentType: artifact.contentType,
+      sizeBytes: artifact.sizeBytes.toString(),
+      createdAt: artifact.createdAt,
+    }));
+  }
+
+  async getContent(
+    investigationId: string,
+    assetId: string,
+    artifactId: string,
+  ) {
+    const artifact = await this.prisma.researchAssetArtifact.findFirst({
+      where: {
+        id: artifactId,
+        researchAssetId: assetId,
+        researchAsset: { investigationId },
+      },
+    });
+
+    if (!artifact) {
+      throw new NotFoundException('Artifact not found');
+    }
+
+    const object = await this.s3Service.get(
+      'investigationImages',
+      artifact.storageKey,
+    );
+
+    return { artifact, object };
   }
 }
