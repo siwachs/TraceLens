@@ -79,6 +79,14 @@ export class InvestigationController {
     (object.Body as Readable).pipe(response);
   }
 
+  @Get(':investigationId/assets/:assetId/analysis')
+  getAssetAnalysis(
+    @Param('investigationId') investigationId: string,
+    @Param('assetId') assetId: string,
+  ) {
+    return this.investigationService.getAssetAnalysis(investigationId, assetId);
+  }
+
   @Delete(':investigationId/assets/:assetId')
   async deleteAsset(
     @Param('investigationId') investigationId: string,

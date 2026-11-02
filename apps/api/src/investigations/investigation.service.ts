@@ -150,6 +150,17 @@ export class InvestigationService {
     };
   }
 
+  async getAssetAnalysis(investigationId: string, assetId: string) {
+    const asset = await this.findAsset(investigationId, assetId);
+
+    return {
+      assetId: asset.id,
+      status: asset.status,
+      sha256: asset.sha256,
+      analysis: asset.analysis,
+    };
+  }
+
   async deleteAsset(investigationId: string, assetId: string) {
     const asset = await this.findAsset(investigationId, assetId);
 
