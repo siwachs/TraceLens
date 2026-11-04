@@ -33,6 +33,7 @@ model ResearchAsset {
 
   sha256 String?
   analysis Json?
+  failureReason String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

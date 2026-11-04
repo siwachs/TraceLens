@@ -58,6 +58,7 @@ export class AssetProcessingService {
         },
         data: {
           status: 'PROCESSING',
+          failureReason: null,
         },
       });
       if (claim.count === 0) {
@@ -121,6 +122,10 @@ export class AssetProcessingService {
         },
         data: {
           status: 'FAILED',
+          failureReason: (error instanceof Error
+            ? error.message
+            : String(error)
+          ).slice(0, 500),
         },
       });
 

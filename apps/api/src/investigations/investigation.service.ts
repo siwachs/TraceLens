@@ -86,6 +86,10 @@ export class InvestigationService {
         data: {
           storageKey,
           status: 'FAILED',
+          failureReason: (error instanceof Error
+            ? error.message
+            : String(error)
+          ).slice(0, 500),
         },
       });
 
@@ -158,6 +162,7 @@ export class InvestigationService {
       status: asset.status,
       sha256: asset.sha256,
       analysis: asset.analysis,
+      failureReason: asset.failureReason,
     };
   }
 
