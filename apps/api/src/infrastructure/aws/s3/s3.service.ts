@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import {
+  HeadBucketCommand,
   DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
@@ -68,6 +69,14 @@ export class S3Service {
       new DeleteObjectCommand({
         Bucket: this.getBucket(bucket),
         Key: key,
+      }),
+    );
+  }
+
+  async checkBucket(bucket: S3Bucket): Promise<void> {
+    await this.client.send(
+      new HeadBucketCommand({
+        Bucket: this.getBucket(bucket),
       }),
     );
   }
