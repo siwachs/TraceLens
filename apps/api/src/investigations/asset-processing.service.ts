@@ -46,27 +46,27 @@ export class AssetProcessingService {
     const staleBefore = new Date(
       Date.now() - this.assetsConfig.processingStaleAfterMS,
     );
+    
+    const claim = await this.prisma.researchAsset.updateMany({
+      where: {
+        id: asset.id,
+        OR: [
+          { status: { in: ['READY', 'FAILED'] } },
+          { status: 'PROCESSING', updatedAt: { lt: staleBefore } },
+        ],
+      },
+      data: {
+        status: 'PROCESSING',
+        failureReason: null,
+      },
+    });
+    if (claim.count === 0) {
+      throw new ConflictException(
+        'Asset must be READY or FAILED to be processed, and not already in progress',
+      );
+    }
 
     try {
-      const claim = await this.prisma.researchAsset.updateMany({
-        where: {
-          id: asset.id,
-          OR: [
-            { status: { in: ['READY', 'FAILED'] } },
-            { status: 'PROCESSING', updatedAt: { lt: staleBefore } },
-          ],
-        },
-        data: {
-          status: 'PROCESSING',
-          failureReason: null,
-        },
-      });
-      if (claim.count === 0) {
-        throw new ConflictException(
-          'Asset must be READY or FAILED to be processed, and not already in progress',
-        );
-      }
-
       const object = await this.s3Service.get(
         'investigationImages',
         asset.storageKey,
