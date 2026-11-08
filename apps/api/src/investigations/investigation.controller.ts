@@ -12,6 +12,8 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
+import { CreateInvestigationDto } from './dto/index.js';
+
 import { InvestigationService } from './investigation.service.js';
 import { AssetProcessingService } from './asset-processing.service.js';
 import { DerivedArtifactService } from './derived-artifact.service.js';
@@ -30,8 +32,8 @@ export class InvestigationController {
   ) {}
 
   @Post()
-  create(@Body('name') name: string) {
-    return this.investigationService.create(name);
+  create(@Body() dto: CreateInvestigationDto) {
+    return this.investigationService.create(dto.name);
   }
 
   @Get()
