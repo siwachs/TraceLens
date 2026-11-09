@@ -17,6 +17,7 @@ model Investigation {
   updatedAt DateTime @updatedAt
 
   researchAssets ResearchAsset[]
+  inputs         Input[]
 }
 
 model ResearchAsset {
@@ -31,8 +32,8 @@ model ResearchAsset {
 
   status ResearchAssetStatus @default(UPLOADING)
 
-  sha256 String?
-  analysis Json?
+  sha256        String?
+  analysis      Json?
   failureReason String?
 
   createdAt DateTime @default(now())
@@ -41,6 +42,7 @@ model ResearchAsset {
   investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
 
   artifacts ResearchAssetArtifact[]
+  input     Input?
 
   @@index([investigationId])
 }
@@ -68,4 +70,50 @@ model ResearchAssetArtifact {
 
   @@unique([researchAssetId, type])
   @@index([researchAssetId])
+}
+
+enum InputType {
+  IMAGE
+  USERNAME
+  EMAIL
+  PHONE
+  URL
+  DOMAIN
+  NAME
+  TEXT
+}
+
+enum InputOrigin {
+  USER
+  DISCOVERED
+}
+
+enum InputStatus {
+  PROPOSED
+  ACTIVE
+  ARCHIVED
+}
+
+model Input {
+  id              String @id @default(uuid())
+  investigationId String
+
+  type            InputType
+  value           String
+  normalizedValue String
+  platform        String      @default("")
+  origin          InputOrigin @default(USER)
+  status          InputStatus @default(ACTIVE)
+  note            String?
+
+  researchAssetId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  investigation Investigation  @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+  researchAsset ResearchAsset? @relation(fields: [researchAssetId], references: [id], onDelete: Cascade)
+
+  @@unique([investigationId, type, platform, normalizedValue])
+  @@index([investigationId])
 }
