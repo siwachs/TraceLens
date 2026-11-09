@@ -23,6 +23,8 @@
     "prisma:validate": "prisma validate --config prisma7.config.ts",
     "prisma:generate": "prisma generate --config prisma7.config.ts",
     "prisma:migrate": "prisma migrate dev --config prisma7.config.ts",
+    "prisma:migrate:status": "prisma migrate status --config prisma7.config.ts",
+    "prisma:migrate:deploy": "prisma migrate deploy --config prisma7.config.ts",
     "prisma:studio": "prisma studio --config prisma7.config.ts"
   },
   "dependencies": {

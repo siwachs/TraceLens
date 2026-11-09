@@ -1,0 +1,46 @@
+enum InputType {
+    IMAGE
+    USERNAME
+    EMAIL
+    PHONE
+    URL
+    DOMAIN
+    NAME
+    TEXT
+}
+
+enum InputOrigin {
+    USER
+    DISCOVERED
+}
+
+enum InputStatus {
+    PROPOSED
+    ACTIVE
+    ARCHIVED
+}
+
+model Input {
+    id              String @id @default(uuid())
+    investigationId String
+
+    type            InputType
+    value           String
+    normalizedValue String
+    platform        String      @default("")
+    origin          InputOrigin @default(USER)
+    status          InputStatus @default(ACTIVE)
+    note            String?
+
+    researchAssetId String? @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    investigation Investigation  @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+    researchAsset ResearchAsset? @relation(fields: [researchAssetId], references: [id], onDelete: Cascade)
+    pipelineRuns  PipelineRun[]
+
+    @@unique([investigationId, type, platform, normalizedValue])
+    @@index([investigationId])
+}

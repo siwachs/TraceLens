@@ -1,0 +1,13 @@
+model Investigation {
+    id String @id @default(uuid())
+
+    name   String
+    status String @default("CREATED")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    researchAssets ResearchAsset[]
+    inputs         Input[]
+    pipelineRuns   PipelineRun[]
+}

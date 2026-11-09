@@ -1,0 +1,32 @@
+enum PipelineRunStatus {
+    QUEUED
+    RUNNING
+    SUCCEEDED
+    PARTIAL
+    FAILED
+}
+
+model PipelineRun {
+    id              String @id @default(uuid())
+    investigationId String
+    inputId         String
+
+    pipeline      String
+    status        PipelineRunStatus @default(QUEUED)
+    round         Int               @default(0)
+    attempt       Int               @default(0)
+    failureReason String?
+
+    startedAt  DateTime?
+    finishedAt DateTime?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+    input         Input         @relation(fields: [inputId], references: [id], onDelete: Cascade)
+
+    @@unique([inputId, pipeline, round])
+    @@index([investigationId])
+    @@index([status, createdAt])
+}

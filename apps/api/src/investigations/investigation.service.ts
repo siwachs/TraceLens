@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash, randomUUID } from 'node:crypto';
@@ -52,18 +53,36 @@ export class InvestigationService {
     const sha256 = createHash('sha256').update(file.buffer).digest('hex');
     const storageKey = `investigations/${investigationId}/assets/${assetId}`;
 
-    const asset = await this.prisma.researchAsset.create({
-      data: {
-        id: assetId,
-        investigationId,
-        originalFilename: file.originalname,
-        contentType: file.mimetype,
-        sizeBytes: BigInt(file.size),
-        storageKey,
-        sha256,
-        status: 'UPLOADING',
-      },
-    });
+    const asset = await this.prisma.researchAsset
+      .create({
+        data: {
+          id: assetId,
+          investigationId,
+          originalFilename: file.originalname,
+          contentType: file.mimetype,
+          sizeBytes: BigInt(file.size),
+          storageKey,
+          sha256,
+          status: 'UPLOADING',
+          input: {
+            create: {
+              investigationId,
+              type: 'IMAGE',
+              value: file.originalname,
+              normalizedValue: sha256,
+            },
+          },
+        },
+      })
+      .catch((error: unknown) => {
+        if ((error as { code?: string } | null)?.code === 'P2002') {
+          throw new ConflictException(
+            'This image is already in the investigation',
+          );
+        }
+
+        throw error;
+      });
 
     try {
       await this.s3Service.put(
@@ -90,6 +109,11 @@ export class InvestigationService {
             ? error.message
             : String(error)
           ).slice(0, 500),
+        },
+      });
+      await this.prisma.input.deleteMany({
+        where: {
+          researchAssetId: asset.id,
         },
       });
 
