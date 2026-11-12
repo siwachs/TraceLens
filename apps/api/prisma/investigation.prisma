@@ -10,4 +10,5 @@ model Investigation {
     researchAssets ResearchAsset[]
     inputs         Input[]
     pipelineRuns   PipelineRun[]
+    findings       Finding[]
 }

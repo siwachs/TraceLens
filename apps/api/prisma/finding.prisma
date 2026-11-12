@@ -1,0 +1,42 @@
+enum FindingStatus {
+    FOUND
+    NOT_FOUND
+    ERROR
+    UNKNOWN
+}
+
+enum FindingConfidence {
+    LOW
+    MEDIUM
+    HIGH
+}
+
+model Finding {
+    id              String @id @default(uuid())
+    investigationId String
+    runId           String
+
+    kind        String
+    entityType  String?
+    entityValue String?
+
+    checkStatus FindingStatus      @default(FOUND)
+    confidence  FindingConfidence?
+    basis       String?
+
+    source    String
+    sourceUrl String?
+
+    dedupeKey String
+    payload   Json
+
+    observedAt DateTime @default(now())
+    createdAt  DateTime @default(now())
+
+    investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+    run           PipelineRun   @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+    @@unique([runId, dedupeKey])
+    @@index([runId])
+    @@index([investigationId, entityType, entityValue])
+}

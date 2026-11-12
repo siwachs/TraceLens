@@ -26,6 +26,8 @@ model PipelineRun {
     investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
     input         Input         @relation(fields: [inputId], references: [id], onDelete: Cascade)
 
+    findings Finding[]
+
     @@unique([inputId, pipeline, round])
     @@index([investigationId])
     @@index([status, createdAt])
