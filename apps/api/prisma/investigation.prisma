@@ -11,4 +11,5 @@ model Investigation {
     inputs         Input[]
     pipelineRuns   PipelineRun[]
     findings       Finding[]
+    snapshots      Snapshot[]
 }

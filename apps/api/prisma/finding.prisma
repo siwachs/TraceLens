@@ -27,16 +27,19 @@ model Finding {
     source    String
     sourceUrl String?
 
-    dedupeKey String
-    payload   Json
+    dedupeKey  String
+    payload    Json
+    snapshotId String?
 
     observedAt DateTime @default(now())
     createdAt  DateTime @default(now())
 
     investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
     run           PipelineRun   @relation(fields: [runId], references: [id], onDelete: Cascade)
+    snapshot      Snapshot?     @relation(fields: [snapshotId], references: [id], onDelete: SetNull)
 
     @@unique([runId, dedupeKey])
     @@index([runId])
     @@index([investigationId, entityType, entityValue])
+    @@index([snapshotId])
 }

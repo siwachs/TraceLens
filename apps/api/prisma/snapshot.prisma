@@ -1,0 +1,22 @@
+model Snapshot {
+    id              String @id @default(uuid())
+    investigationId String
+    runId           String
+
+    sourceUrl   String
+    storageKey  String
+    contentType String
+    sizeBytes   BigInt
+    sha256      String
+    httpStatus  Int?
+
+    retrievedAt DateTime @default(now())
+    createdAt   DateTime @default(now())
+
+    investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+    run           PipelineRun   @relation(fields: [runId], references: [id], onDelete: Cascade)
+    findings      Finding[]
+
+    @@index([runId])
+    @@index([investigationId])
+}
