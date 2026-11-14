@@ -23,13 +23,13 @@ model PipelineRun {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
-    input         Input         @relation(fields: [inputId], references: [id], onDelete: Cascade)
+    input Input @relation(fields: [inputId, investigationId], references: [id, investigationId], onDelete: Cascade)
 
     findings  Finding[]
     snapshots Snapshot[]
 
     @@unique([inputId, pipeline, round])
+    @@unique([id, investigationId])
     @@index([investigationId])
     @@index([status, createdAt])
 }

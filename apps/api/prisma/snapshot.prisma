@@ -13,10 +13,10 @@ model Snapshot {
     retrievedAt DateTime @default(now())
     createdAt   DateTime @default(now())
 
-    investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
-    run           PipelineRun   @relation(fields: [runId], references: [id], onDelete: Cascade)
-    findings      Finding[]
+    run      PipelineRun @relation(fields: [runId, investigationId], references: [id, investigationId], onDelete: Cascade)
+    findings Finding[]
 
+    @@unique([id, investigationId])
     @@index([runId])
     @@index([investigationId])
 }

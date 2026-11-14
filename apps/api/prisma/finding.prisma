@@ -1,3 +1,7 @@
+/// FOUND: the check ran and positively shows the thing.
+/// NOT_FOUND: the check ran and returned a trustworthy negative. It never proves absence in general.
+/// ERROR: the check could not complete (timeout, block, rate limit).
+/// UNKNOWN: the check completed but the result is ambiguous.
 enum FindingStatus {
     FOUND
     NOT_FOUND
@@ -5,6 +9,10 @@ enum FindingStatus {
     UNKNOWN
 }
 
+/// HIGH: deterministic result computed from the artifact itself, or an exact match on a fetched primary page.
+/// MEDIUM: tool-reported match with some verification.
+/// LOW: heuristic, name-only match, or anything an LLM suggested (kind HYPOTHESIS).
+/// The rule used is recorded in `basis`. Entity-level confidence is computed later, in the merge.
 enum FindingConfidence {
     LOW
     MEDIUM
@@ -34,12 +42,10 @@ model Finding {
     observedAt DateTime @default(now())
     createdAt  DateTime @default(now())
 
-    investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
-    run           PipelineRun   @relation(fields: [runId], references: [id], onDelete: Cascade)
-    snapshot      Snapshot?     @relation(fields: [snapshotId], references: [id], onDelete: SetNull)
+    run      PipelineRun @relation(fields: [runId, investigationId], references: [id, investigationId], onDelete: Cascade)
+    snapshot Snapshot?   @relation(fields: [snapshotId, investigationId], references: [id, investigationId], onDelete: NoAction)
 
     @@unique([runId, dedupeKey])
-    @@index([runId])
     @@index([investigationId, entityType, entityValue])
     @@index([snapshotId])
 }

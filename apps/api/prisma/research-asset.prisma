@@ -1,6 +1,6 @@
 model ResearchAsset {
-    id              String @id @default(uuid())
-    investigationId String
+    id      String @id @default(uuid())
+    inputId String @unique
 
     originalFilename String
     contentType      String
@@ -17,12 +17,9 @@ model ResearchAsset {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+    input Input @relation(fields: [inputId], references: [id], onDelete: Cascade)
 
     artifacts ResearchAssetArtifact[]
-    input     Input?
-
-    @@index([investigationId])
 }
 
 enum ResearchAssetStatus {
@@ -47,5 +44,4 @@ model ResearchAssetArtifact {
     researchAsset ResearchAsset @relation(fields: [researchAssetId], references: [id], onDelete: Cascade)
 
     @@unique([researchAssetId, type])
-    @@index([researchAssetId])
 }

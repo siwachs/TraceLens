@@ -1,15 +1,18 @@
+/// ACTIVE: open case. ARCHIVED: closed.
+/// "Running" and "awaiting approval" are not stored; they are derived from runs and inputs.
+enum InvestigationStatus {
+    ACTIVE
+    ARCHIVED
+}
+
 model Investigation {
     id String @id @default(uuid())
 
     name   String
-    status String @default("CREATED")
+    status InvestigationStatus @default(ACTIVE)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    researchAssets ResearchAsset[]
-    inputs         Input[]
-    pipelineRuns   PipelineRun[]
-    findings       Finding[]
-    snapshots      Snapshot[]
+    inputs Input[]
 }
