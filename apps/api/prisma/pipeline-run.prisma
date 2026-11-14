@@ -7,7 +7,7 @@ enum PipelineRunStatus {
 }
 
 model PipelineRun {
-    id              String @id @default(uuid())
+    id              String @id @default(uuid(7))
     investigationId String
     inputId         String
 

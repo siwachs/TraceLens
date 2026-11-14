@@ -1,5 +1,5 @@
 model ResearchAsset {
-    id      String @id @default(uuid())
+    id      String @id @default(uuid(7))
     inputId String @unique
 
     originalFilename String
@@ -31,7 +31,7 @@ enum ResearchAssetStatus {
 }
 
 model ResearchAssetArtifact {
-    id              String @id @default(uuid())
+    id              String @id @default(uuid(7))
     researchAssetId String
 
     type        String

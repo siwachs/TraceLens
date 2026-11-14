@@ -1,5 +1,5 @@
 model Snapshot {
-    id              String @id @default(uuid())
+    id              String @id @default(uuid(7))
     investigationId String
     runId           String
 

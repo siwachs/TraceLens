@@ -21,7 +21,7 @@ enum InputStatus {
 }
 
 model Input {
-    id              String @id @default(uuid())
+    id              String @id @default(uuid(7))
     investigationId String
 
     type            InputType

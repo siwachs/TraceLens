@@ -6,7 +6,7 @@ enum InvestigationStatus {
 }
 
 model Investigation {
-    id String @id @default(uuid())
+    id String @id @default(uuid(7))
 
     name   String
     status InvestigationStatus @default(ACTIVE)
