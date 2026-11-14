@@ -53,23 +53,22 @@ export class InvestigationService {
     const sha256 = createHash('sha256').update(file.buffer).digest('hex');
     const storageKey = `investigations/${investigationId}/assets/${assetId}`;
 
-    const asset = await this.prisma.researchAsset
+    const input = await this.prisma.input
       .create({
         data: {
-          id: assetId,
           investigationId,
-          originalFilename: file.originalname,
-          contentType: file.mimetype,
-          sizeBytes: BigInt(file.size),
-          storageKey,
-          sha256,
-          status: 'UPLOADING',
-          input: {
+          type: 'IMAGE',
+          value: file.originalname,
+          normalizedValue: sha256,
+          researchAsset: {
             create: {
-              investigationId,
-              type: 'IMAGE',
-              value: file.originalname,
-              normalizedValue: sha256,
+              id: assetId,
+              originalFilename: file.originalname,
+              contentType: file.mimetype,
+              sizeBytes: BigInt(file.size),
+              storageKey,
+              sha256,
+              status: 'UPLOADING',
             },
           },
         },
@@ -93,29 +92,14 @@ export class InvestigationService {
       );
 
       return await this.prisma.researchAsset.update({
-        where: { id: asset.id },
+        where: { id: assetId },
         data: {
           storageKey,
           status: 'READY',
         },
       });
     } catch (error) {
-      await this.prisma.researchAsset.update({
-        where: { id: asset.id },
-        data: {
-          storageKey,
-          status: 'FAILED',
-          failureReason: (error instanceof Error
-            ? error.message
-            : String(error)
-          ).slice(0, 500),
-        },
-      });
-      await this.prisma.input.deleteMany({
-        where: {
-          researchAssetId: asset.id,
-        },
-      });
+      await this.rollbackUpload(storageKey, input.id);
 
       throw error;
     }
@@ -149,11 +133,25 @@ export class InvestigationService {
     }
   }
 
+  private async rollbackUpload(storageKey: string, inputId: string) {
+    try {
+      await this.s3Service.delete('investigationImages', storageKey);
+    } catch {
+      // Best effort: the object may not exist if the upload itself failed.
+    }
+
+    try {
+      await this.prisma.input.delete({ where: { id: inputId } });
+    } catch {
+      // Preserve the original upload error.
+    }
+  }
+
   private async findAsset(investigationId: string, assetId: string) {
     const asset = await this.prisma.researchAsset.findFirst({
       where: {
         id: assetId,
-        investigationId,
+        input: { investigationId },
       },
     });
 
@@ -196,9 +194,9 @@ export class InvestigationService {
     await this.derivedArtifactService.deleteAllForAsset(asset.id);
     await this.s3Service.delete('investigationImages', asset.storageKey);
 
-    await this.prisma.researchAsset.delete({
+    await this.prisma.input.delete({
       where: {
-        id: asset.id,
+        id: asset.inputId,
       },
     });
   }
@@ -214,7 +212,7 @@ export class InvestigationService {
     }
 
     const assets = await this.prisma.researchAsset.findMany({
-      where: { investigationId },
+      where: { input: { investigationId } },
       select: { id: true },
     });
 
@@ -243,7 +241,7 @@ export class InvestigationService {
 
     const assets = await this.prisma.researchAsset.findMany({
       where: {
-        investigationId,
+        input: { investigationId },
       },
       orderBy: {
         createdAt: 'desc',
@@ -252,7 +250,7 @@ export class InvestigationService {
 
     return assets.map((asset) => ({
       id: asset.id,
-      investigationId: asset.investigationId,
+      investigationId,
       originalFilename: asset.originalFilename,
       contentType: asset.contentType,
       sizeBytes: asset.sizeBytes.toString(),
