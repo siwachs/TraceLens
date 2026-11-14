@@ -35,7 +35,7 @@ export class AssetProcessingService {
     const asset = await this.prisma.researchAsset.findFirst({
       where: {
         id: assetId,
-        investigationId,
+        input: { investigationId },
       },
     });
 
@@ -46,7 +46,7 @@ export class AssetProcessingService {
     const staleBefore = new Date(
       Date.now() - this.assetsConfig.processingStaleAfterMS,
     );
-    
+
     const claim = await this.prisma.researchAsset.updateMany({
       where: {
         id: asset.id,

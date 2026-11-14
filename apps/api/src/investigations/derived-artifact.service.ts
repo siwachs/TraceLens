@@ -93,7 +93,7 @@ export class DerivedArtifactService {
 
   async findForAsset(investigationId: string, assetId: string) {
     const asset = await this.prisma.researchAsset.findFirst({
-      where: { id: assetId, investigationId },
+      where: { id: assetId, input: { investigationId } },
       select: {
         artifacts: { orderBy: { createdAt: 'asc' } },
       },
@@ -121,7 +121,7 @@ export class DerivedArtifactService {
       where: {
         id: artifactId,
         researchAssetId: assetId,
-        researchAsset: { investigationId },
+        researchAsset: { input: { investigationId } },
       },
     });
 
