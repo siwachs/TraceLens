@@ -6,6 +6,7 @@ import { AppService } from './app.service.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { HealthModule } from './health/health.module.js';
 import { InvestigationModule } from './investigations/investigation.module.js';
+import { EngineModule } from './engine/engine.module.js';
 
 import awsConfig from './infrastructure/aws/aws.config.js';
 import assetsConfig from './investigations/assets.config.js';
@@ -16,6 +17,7 @@ import assetsConfig from './investigations/assets.config.js';
     PrismaModule,
     HealthModule,
     InvestigationModule,
+    EngineModule,
   ],
   controllers: [AppController],
   providers: [AppService],
